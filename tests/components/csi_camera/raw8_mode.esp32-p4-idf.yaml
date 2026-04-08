@@ -1,0 +1,31 @@
+esphome:
+  name: csi-camera-raw8-test
+
+esp32:
+  board: esp32-p4-evboard
+  variant: ESP32P4
+  framework:
+    type: esp-idf
+
+logger:
+
+psram:
+
+i2c:
+  sda: GPIO7
+  scl: GPIO8
+
+csi_camera:
+  id: csi_cam
+  name: P4 Camera
+  sensor: ov5647
+  raw_format: raw8
+  address: 0x36
+  power_down_pin: 27
+  ldo_chan: 3
+  ldo_mv: 2500
+  frame_buffer_count: 3
+  enable_ccm: false
+  saturation: 1.5
+  contrast: 1.0
+  test_pattern: false

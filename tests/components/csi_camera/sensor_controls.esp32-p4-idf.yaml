@@ -1,0 +1,48 @@
+esphome:
+  name: csi-camera-controls-test
+
+esp32:
+  board: esp32-p4-evboard
+  variant: ESP32P4
+  framework:
+    type: esp-idf
+
+logger:
+
+psram:
+
+i2c:
+  sda: GPIO7
+  scl: GPIO8
+
+csi_camera:
+  id: csi_cam
+  name: P4 Camera
+  sensor: ov5647
+  mode: 720p60
+  raw_format: raw10
+  address: 0x36
+  power_down_pin: 27
+  ldo_chan: 3
+  ldo_mv: 2500
+  frame_buffer_count: 3
+  enable_ccm: false
+  saturation: 1.2
+  contrast: 1.1
+  wb_mode: sunny
+  aec_mode: AUTO
+  ae_level: 1
+  agc_mode: AUTO
+  sharpness: 1
+  denoise: 1
+  dead_pixel_correction: true
+  black_level_correction: true
+  lens_shading_correction: true
+  night_mode: false
+
+interval:
+  - interval: 30s
+    then:
+      - csi_camera.set_night_mode:
+          id: csi_cam
+          night_mode: true
