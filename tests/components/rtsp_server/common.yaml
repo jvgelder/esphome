@@ -1,0 +1,54 @@
+esphome:
+  name: rtsp-server-test
+
+esp32:
+  board: esp32-p4-evboard
+  variant: ESP32P4
+  framework:
+    type: esp-idf
+
+logger:
+
+psram:
+
+i2c:
+  sda: GPIO7
+  scl: GPIO8
+
+ethernet:
+  type: IP101
+  mdc_pin: GPIO31
+  mdio_pin: GPIO52
+  clk:
+    mode: CLK_EXT_IN
+    pin: GPIO0
+  phy_addr: 1
+  power_pin: GPIO51
+
+csi_camera:
+  id: csi_cam
+  name: P4 Camera
+  sensor: ov5647
+  mode: 1080p30
+  address: 0x36
+  power_down_pin: 27
+  frame_buffer_count: 3
+  enable_ccm: false
+
+camera_h264:
+  id: h264_enc
+  camera_id: csi_cam
+  width: 1920
+  height: 1080
+  fps: 25
+  bitrate: 2000000
+  gop: 15
+
+rtsp_server:
+  encoder_id: h264_enc
+  port: 554
+  username: test
+  password: test
+  transport: udp
+  udp_bandwidth_kbps: 50000
+  rtp_payload_size: 1400
