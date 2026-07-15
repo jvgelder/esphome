@@ -1,0 +1,90 @@
+# ESP32-P4 Camera → H.264 → RTSP (Frigate / Home Assistant)
+esphome:
+  name: p4-camera
+  friendly_name: ESP32-P4 Camera
+  # If you use an esp_cam_sensor IMX219 detect function, add e.g.
+  # platformio_options:
+  #   build_flags:
+  #     - "-Wl,-u,imx219_detect"
+
+esp32:
+  board: esp32-p4-evboard
+  variant: esp32p4
+  cpu_frequency: 360MHz
+  flash_size: 32MB
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_SPIRAM: "y"
+      CONFIG_SPIRAM_MODE_OCT: "y"
+      CONFIG_SPIRAM_SPEED_200M: "y"
+      CONFIG_ISP_CTRL_FUNC_IN_IRAM: "y"
+      CONFIG_CAM_CTLR_MIPI_CSI_ISR_CACHE_SAFE: "y"
+      CONFIG_LOG_DEFAULT_LEVEL_INFO: "y"
+      CONFIG_LOG_MASTER_LEVEL: "y"
+      # Enable IMX219 sensor driver options here only if your tree provides them.
+
+logger:
+  hardware_uart: UART0
+  baud_rate: 115200
+  level: INFO
+
+psram:
+  mode: hex
+  speed: 200MHz
+
+ethernet:
+  type: IP101
+  mdc_pin: GPIO31
+  mdio_pin: GPIO52
+  power_pin: GPIO51
+  clk:
+    mode: CLK_EXT_IN
+    pin: GPIO50
+  phy_addr: 1
+  manual_ip:
+    static_ip: 192.168.23.2
+    gateway: 192.168.23.1
+    subnet: 255.255.255.0
+
+i2c:
+  sda: 7
+  scl: 8
+  frequency: 100kHz
+
+csi_camera:
+  id: csi_cam
+  name: "P4 Camera"
+  power_down_pin: 27
+  ldo_chan: 3          # MIPI PHY LDO (was separate esp_ldo block)
+  ldo_mv: 2500
+  frame_buffer_count: 3     # low-RAM zero-copy baseline; raise to 3 only if CSI underruns
+  sensor: ov5647      # imx219, ov5647, or custom
+  # Width/height/fps are derived from the sensor format string.
+  # OV5647 defaults below are applied automatically, but kept explicit here for clarity.
+  mode: 1080p30
+  raw_format: raw10
+  bayer_order: auto   # working ESP32-P4 ISP interpretation for your RPi Camera v2
+  enable_ccm: false
+  saturation: 1.5
+
+camera_h264:
+  id: h264_enc
+  camera_id: csi_cam
+  always_on: true
+  gop: 10
+  width: 1920
+  height: 1080
+  fps: 30
+  bitrate: 4000000
+  qp_min: 20
+  qp_max: 40
+  # stream_port: 8080  # optional raw TCP (ffplay tcp://...) — enable for debugging
+
+rtsp_server:
+  encoder_id: h264_enc
+  transport: tcp
+  force_keyframe_on_play: true
+  frame_slots: 1
+  rtp_payload_size: 1400
+  udp_bandwidth_kbps: 50000
